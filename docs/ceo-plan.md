@@ -77,3 +77,49 @@ Design doc: ~/.gstack/projects/agent-data-gateway/numa08-unknown-design-20260501
 - ポリシー執行（ブロック機能）— MVP 後
 - 異常検知 — MVP 後
 - SaaS クラウド版 — 将来フェーズ
+- ステージライブデモ向けのフォールバック録画 — 審査員は事前にデプロイ済みシステムを操作する非同期デモのため不要
+
+---
+
+## Eng Review Additions (2026-05-04, /plan-eng-review)
+
+### Architecture
+- **A1 (Schema)**: SQLite 行に `text_context TEXT`（直前 text ブロック全文）と `raw_response BLOB`（生 JSON）を追加。DESIGN.md の WHY クリック展開 UI を実装可能にする。`extraction_source ENUM('text','thinking','fallback','none')` も追加して WHY ソースを記録
+- **A2 (SSE tee)**: 上流 SSE ストリームを `ReadableStream.tee()` で 2 本に分割。(1) クライアントへ即時中継、(2) WHY 抽出バッファ。バッファ後遅延中継を防ぐ
+- **A3 (Failure modes)**:
+  - 上流タイムアウト: 60s default（env `UPSTREAM_TIMEOUT_MS` で変更可）。504 を返却、`flag_reason="upstream_timeout"`
+  - SQLite 書き込み失敗（disk full 等）: レスポンス中継は続行、stderr エラーログ、post-mortem キュー（オプション、in-memory）
+  - クライアント切断 mid-SSE: `AbortController` で上流 fetch を中止、`flag_reason="client_disconnect"` で記録
+- **A4 (Mock API)**: `mock-api/` Hono サービスとして同梱。`POST /issues`, `POST /issues/:id/assign`, `POST /issues/:id/comment`。in-memory state、docker-compose に 1 service 追加
+
+### Code Organization
+- **A5 (Monorepo workspaces)**: Bun workspaces で `packages/shared/` に SQLite 行型・Anthropic API リクエスト/レスポンス型を集約。`proxy/`, `dashboard/`, `mock-api/` から共通 import
+
+### Tests (CRITICAL — Boil the Lake)
+- **A6 (Test scope)**: テストレビューで生成したカバレッジダイアグラム上の **30+ パスすべてを必須**。実装と同時にテストを書く方針。テスト計画は `~/.gstack/projects/covelline-agent-data-gateway/numa08-main-eng-review-test-plan-20260504-223028.md`
+
+### Performance / Resilience
+- **A7 (Memory bound)**: env `MAX_CONCURRENT_BUFFERS=32`（default）。超過時の追加 SSE リクエストはバッファ無し中継のみ、`WHY=null` + `flag_reason="buffer_capacity"`
+- **A10 (tee backpressure)**: tee 実装は **drop-on-overflow buffer** ポリシー。クライアント側 backpressure で上流をブロックしない。バッファ上限超過時はチャンクを drop し flag。これによりクライアント遅延 → OOM 連鎖を防ぐ
+
+### WHY Extraction
+- **A9 (Thinking blocks)**: `extended thinking` 有効時は推論が `text` でなく `thinking` ブロックに入る。WHY 抽出ロジックを「`tool_use` 直前の `text` または `thinking` ブロック」に拡張。`extraction_source` カラムにソース種別を記録
+
+### Storage Lifecycle
+- **A13 (BLOB retention)**: env `RAW_RESPONSE_TTL_DAYS=90`（default）。Nightly scheduled task で TTL 超過行の `raw_response` を NULL クリア（`text_context` と `why` は保持）。SQLite サイズの暴走を防ぐ。コンプライアンス完全保持期間（7年）が必要な顧客は env で延長
+
+## GSTACK REVIEW REPORT
+
+| Review | Trigger | Why | Runs | Status | Findings |
+|--------|---------|-----|------|--------|----------|
+| CEO Review | `/plan-ceo-review` | Scope & strategy | 1 (prior) | CLEAR | 5 proposals, 1 accepted, 4 deferred |
+| Codex Review | `/codex review` | Independent 2nd opinion | 0 | — | not run (codex not installed) |
+| Eng Review | `/plan-eng-review` | Architecture & tests (required) | 1 | CLEAR | 7 issues, 0 critical gaps, 3 cross-model accepted, 3 cross-model overruled |
+| Design Review | `/plan-design-review` | UI/UX gaps | 0 | — | DESIGN.md exists from `/design-consultation` |
+| DX Review | `/plan-devex-review` | Developer experience | 0 | — | not run |
+
+**OUTSIDE VOICE (Claude subagent)**: Cross-model tensions surfaced — 3 accepted (thinking blocks, tee backpressure, BLOB retention), 3 overruled by user (workspaces, mock-api separation, test scope), 2 out-of-scope for eng review (strategic moat, customer interviews — refer to `/plan-ceo-review` follow-up)
+
+**UNRESOLVED**: 0
+
+**VERDICT**: ENG CLEARED — ready to implement
