@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ESNext"],
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "types": ["bun"],
+    "paths": {
+      "@adg/shared": ["./packages/shared/src/index.ts"],
+      "@adg/shared/*": ["./packages/shared/src/*"]
+    }
+  },
+  "include": [
+    "packages/*/src/**/*",
+    "proxy/src/**/*",
+    "proxy/tests/**/*",
+    "dashboard/src/**/*",
+    "dashboard/tests/**/*",
+    "mock-api/src/**/*",
+    "mock-api/tests/**/*"
+  ]
+}

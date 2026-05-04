@@ -1,0 +1,18 @@
+{
+  "id": "msg_01TEXTONLY",
+  "type": "message",
+  "role": "assistant",
+  "model": "claude-haiku-4-5",
+  "content": [
+    {
+      "type": "text",
+      "text": "ご質問にお答えします。バグ報告 #456 の影響範囲は現在調査中ですが、これまでの確認では認証フローには影響していません。"
+    }
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "usage": {
+    "input_tokens": 128,
+    "output_tokens": 56
+  }
+}

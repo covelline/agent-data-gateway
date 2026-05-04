@@ -1,0 +1,26 @@
+{
+  "id": "msg_01SHORTWHY",
+  "type": "message",
+  "role": "assistant",
+  "model": "claude-haiku-4-5",
+  "content": [
+    {
+      "type": "text",
+      "text": "確認します。"
+    },
+    {
+      "type": "tool_use",
+      "id": "toolu_01GETISSUE",
+      "name": "get_issue",
+      "input": {
+        "issue_id": 456
+      }
+    }
+  ],
+  "stop_reason": "tool_use",
+  "stop_sequence": null,
+  "usage": {
+    "input_tokens": 64,
+    "output_tokens": 16
+  }
+}

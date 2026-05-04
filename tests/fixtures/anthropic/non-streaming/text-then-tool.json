@@ -1,0 +1,28 @@
+{
+  "id": "msg_01TEXTHENTOOL",
+  "type": "message",
+  "role": "assistant",
+  "model": "claude-haiku-4-5",
+  "content": [
+    {
+      "type": "text",
+      "text": "バグの影響範囲を特定するために、関連 issue を作成します。"
+    },
+    {
+      "type": "tool_use",
+      "id": "toolu_01CREATE",
+      "name": "create_issue",
+      "input": {
+        "title": "バグ #456: 影響範囲調査",
+        "body": "...",
+        "labels": ["bug", "investigation"]
+      }
+    }
+  ],
+  "stop_reason": "tool_use",
+  "stop_sequence": null,
+  "usage": {
+    "input_tokens": 256,
+    "output_tokens": 64
+  }
+}
