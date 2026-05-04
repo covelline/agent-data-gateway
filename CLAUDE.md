@@ -41,6 +41,13 @@
 - `/gstack-upgrade`
 - `/learn`
 
+## Design System
+
+ビジュアル・UI に関する決定をする前に必ず DESIGN.md を読むこと。
+フォント、カラー、スペーシング、美学方針はすべて DESIGN.md に定義されている。
+明示的なユーザー承認なしに逸脱しないこと。
+QA モードでは DESIGN.md と合致しないコードをフラグすること。
+
 ## Skill routing
 
 When the user's request matches an available skill, invoke it via the Skill tool. When in doubt, invoke the skill.
