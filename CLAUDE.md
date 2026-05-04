@@ -48,6 +48,15 @@
 明示的なユーザー承認なしに逸脱しないこと。
 QA モードでは DESIGN.md と合致しないコードをフラグすること。
 
+## GBrain Configuration (configured by /setup-gbrain)
+- Engine: pglite (`~/.gbrain/brain.pglite`)
+- Config file: `~/.gbrain/config.json` (mode 0600)
+- Setup date: 2026-05-04
+- MCP registered: yes (user scope, `gbrain serve`)
+- Memory sync: full (private repo `git@github.com:numa08/gstack-brain-numa08.git`)
+- Current repo policy: read-write
+- Other PC bootstrap: copy `~/.gstack-brain-remote.txt` then run `gstack-brain-restore`
+
 ## Skill routing
 
 When the user's request matches an available skill, invoke it via the Skill tool. When in doubt, invoke the skill.
