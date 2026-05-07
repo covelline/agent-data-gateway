@@ -49,9 +49,9 @@
 
 ## 実装時 推奨（後回しではなく実装中に対応すること）
 
-- [ ] SQLite WAL モードを有効化: `PRAGMA journal_mode=WAL`（プロキシ書き込みとダッシュボード読み込みの競合防止）
-- [ ] SQLite `timestamp` カラムにインデックス追加（ダッシュボードのソート）
-- [ ] デモ用モック API エンドポイント（`create_issue` / `assign_issue` / `add_comment`）を Docker Compose に含める
+- [x] SQLite WAL モードを有効化: `PRAGMA journal_mode=WAL`（プロキシ書き込みとダッシュボード読み込みの競合防止）**完了: v0.1.0.0 (2026-05-07)**
+- [x] SQLite `timestamp` カラムにインデックス追加（ダッシュボードのソート）**完了: v0.1.0.0 (2026-05-07)**
+- [ ] デモ用モック API エンドポイント（`create_issue` / `assign_issue` / `add_comment`）を Docker Compose に含める（Docker Compose サービスは追加済み、ルート未実装）
 - [ ] `anthropic-beta` ヘッダを pass-through に含める（拡張思考・プロンプトキャッシュ対応）
 - [ ] `metadata.user_id` を WHO の第一ソースとして実装（`X-Agent-ID` は第二ソース）
 - [ ] SSE バッファ上限とフラグ閾値を環境変数で制御可能にする

@@ -1,8 +1,13 @@
 {
   "name": "agent-data-gateway",
-  "version": "0.0.0",
+  "version": "0.1.0.0",
   "private": true,
-  "workspaces": ["packages/*", "proxy", "dashboard", "mock-api"],
+  "workspaces": [
+    "packages/*",
+    "proxy",
+    "dashboard",
+    "mock-api"
+  ],
   "scripts": {
     "test": "bun test",
     "dev:proxy": "bun --watch proxy/src/server.ts",
