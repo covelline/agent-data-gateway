@@ -104,6 +104,50 @@ describe("openDb", () => {
       ),
     ).toThrow();
   });
+
+  it("rejects invalid extraction_source values via DB CHECK constraint", () => {
+    expect(() =>
+      db.run(
+        `INSERT INTO audit_log
+           (timestamp, who, what, why, text_context, raw_response,
+            extraction_source, flag_reason, streaming)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          sample.timestamp, sample.who, sample.what, sample.why,
+          sample.text_context, sample.raw_response,
+          "invalid_source", sample.flag_reason, 0,
+        ],
+      ),
+    ).toThrow();
+  });
+
+  it("throws when opened with a non-existent directory path", () => {
+    expect(() =>
+      openDb("/nonexistent/dir/that/cannot/exist/audit.db"),
+    ).toThrow();
+  });
+});
+
+describe("insertLog error paths", () => {
+  it("throws when writing to a readonly database", () => {
+    const id = insertLog(db, sample);
+    expect(id).toBeGreaterThan(0);
+    db.close();
+
+    const reader = openDb(dbPath, { readonly: true });
+    try {
+      expect(() => insertLog(reader, sample)).toThrow();
+    } finally {
+      reader.close();
+      db = openDb(dbPath);
+    }
+  });
+
+  it("throws when streaming is not 0 or 1 at runtime", () => {
+    expect(() =>
+      insertLog(db, { ...sample, streaming: 2 as unknown as 0 | 1 }),
+    ).toThrow();
+  });
 });
 
 describe("insertLog + getLog", () => {
@@ -267,5 +311,43 @@ describe("clearRawResponseOlderThan (M7 prep)", () => {
     expect(row?.raw_response).toBeNull();
     expect(row?.why).toBe(sample.why);
     expect(row?.text_context).toBe(sample.text_context);
+  });
+
+  it("returns 0 when no rows are older than cutoff", () => {
+    insertLog(db, {
+      ...sample,
+      timestamp: "2026-05-01T00:00:00.000Z",
+    });
+    const changed = clearRawResponseOlderThan(
+      db,
+      "2026-01-01T00:00:00.000Z",
+    );
+    expect(changed).toBe(0);
+  });
+
+  it("skips rows where raw_response is already NULL", () => {
+    const id = insertLog(db, {
+      ...sample,
+      timestamp: "2026-01-01T00:00:00.000Z",
+      raw_response: null,
+    });
+    const changed = clearRawResponseOlderThan(
+      db,
+      "2026-04-01T00:00:00.000Z",
+    );
+    expect(changed).toBe(0);
+    expect(getLog(db, id)?.raw_response).toBeNull();
+  });
+});
+
+describe("listLogs edge cases", () => {
+  it("returns empty array when table is empty", () => {
+    expect(listLogs(db)).toEqual([]);
+  });
+
+  it("applies default limit of 100 without overflowing small dataset", () => {
+    insertLog(db, sample);
+    const rows = listLogs(db);
+    expect(rows).toHaveLength(1);
   });
 });
