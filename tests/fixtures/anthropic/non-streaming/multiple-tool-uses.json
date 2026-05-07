@@ -1,0 +1,45 @@
+{
+  "id": "msg_01MULTIUSE",
+  "type": "message",
+  "role": "assistant",
+  "model": "claude-haiku-4-5",
+  "content": [
+    {
+      "type": "text",
+      "text": "担当者の空き状況を確認したうえで、優先度 High でチケットを作成して割り当てます。"
+    },
+    {
+      "type": "tool_use",
+      "id": "toolu_01CREATE2",
+      "name": "create_issue",
+      "input": {
+        "title": "バグ #456 対応",
+        "priority": "high"
+      }
+    },
+    {
+      "type": "tool_use",
+      "id": "toolu_01ASSIGN2",
+      "name": "assign_issue",
+      "input": {
+        "issue_id": "{{previous.id}}",
+        "assignee": "numa08"
+      }
+    },
+    {
+      "type": "tool_use",
+      "id": "toolu_01COMMENT2",
+      "name": "add_comment",
+      "input": {
+        "issue_id": "{{previous.id}}",
+        "body": "影響範囲調査開始"
+      }
+    }
+  ],
+  "stop_reason": "tool_use",
+  "stop_sequence": null,
+  "usage": {
+    "input_tokens": 384,
+    "output_tokens": 96
+  }
+}

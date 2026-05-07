@@ -1,0 +1,14 @@
+node_modules
+.git
+.gitignore
+.gstack
+.env
+.env.local
+docs
+DESIGN.md
+TODOS.md
+CLAUDE.md
+*.db
+*.db-shm
+*.db-wal
+.DS_Store

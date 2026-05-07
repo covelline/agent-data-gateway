@@ -1,0 +1,14 @@
+{
+  "name": "@adg/dashboard",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "bun src/server.ts",
+    "dev": "bun --watch src/server.ts"
+  },
+  "dependencies": {
+    "@adg/shared": "workspace:*",
+    "hono": "^4.6.0"
+  }
+}

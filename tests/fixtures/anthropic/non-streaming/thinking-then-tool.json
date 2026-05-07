@@ -1,0 +1,27 @@
+{
+  "id": "msg_01THINKING",
+  "type": "message",
+  "role": "assistant",
+  "model": "claude-opus-4-7",
+  "content": [
+    {
+      "type": "thinking",
+      "thinking": "ユーザーはバグ報告 #456 の調査を依頼している。まず関連する issue を検索して影響範囲を把握する必要がある。検索クエリは bug ラベルと #456 への言及を組み合わせるのが適切。"
+    },
+    {
+      "type": "tool_use",
+      "id": "toolu_01SEARCH",
+      "name": "search_issues",
+      "input": {
+        "query": "label:bug references:#456",
+        "limit": 20
+      }
+    }
+  ],
+  "stop_reason": "tool_use",
+  "stop_sequence": null,
+  "usage": {
+    "input_tokens": 312,
+    "output_tokens": 128
+  }
+}
