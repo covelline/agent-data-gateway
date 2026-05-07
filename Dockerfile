@@ -16,3 +16,5 @@ COPY proxy proxy
 COPY dashboard dashboard
 COPY mock-api mock-api
 ENV NODE_ENV=production
+RUN mkdir -p /data && chown bun:bun /data
+USER bun
