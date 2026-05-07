@@ -12,6 +12,10 @@ export interface ListLogsFilters {
 
 export type NewAuditLog = Omit<AuditLogRow, "id">;
 
+export const DEFAULT_LIST_LIMIT = 100;
+
+const FLAG_REASON_WHY_TOO_SHORT = "why_too_short";
+
 const SCHEMA = `
   CREATE TABLE IF NOT EXISTS audit_log (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -21,8 +25,11 @@ const SCHEMA = `
     why TEXT,
     text_context TEXT,
     raw_response BLOB,
-    extraction_source TEXT NOT NULL,
-    flag_reason TEXT,
+    extraction_source TEXT NOT NULL CHECK (extraction_source IN ('text', 'thinking', 'fallback', 'none')),
+    flag_reason TEXT CHECK (flag_reason IS NULL OR flag_reason IN (
+      'no_preceding_text', 'why_too_short', 'upstream_error', 'upstream_timeout',
+      'client_disconnect', 'buffer_overflow', 'buffer_timeout', 'buffer_capacity'
+    )),
     streaming INTEGER NOT NULL CHECK (streaming IN (0, 1))
   );
   CREATE INDEX IF NOT EXISTS idx_audit_timestamp ON audit_log(timestamp DESC);
@@ -74,6 +81,10 @@ export function insertLog(db: Database, row: NewAuditLog): number {
   return Number(result.lastInsertRowid);
 }
 
+/**
+ * 既知の問題: Bun の bun:sqlite は INTEGER NULL を 0 として返すケースがあるため、
+ * raw_response の存在チェックは row.raw_response instanceof Uint8Array で行うこと。
+ */
 export function getLog(db: Database, id: number): AuditLogRow | null {
   const stmt = db.query<AuditLogRow, [number]>(
     `SELECT ${SELECT_COLS} FROM audit_log WHERE id = ?`,
@@ -103,14 +114,14 @@ export function listLogs(
   if (filters.status === "recorded") {
     where.push("flag_reason IS NULL");
   } else if (filters.status === "short") {
-    where.push("flag_reason = 'why_too_short'");
+    where.push(`flag_reason = '${FLAG_REASON_WHY_TOO_SHORT}'`);
   } else if (filters.status === "missing") {
-    where.push("flag_reason IS NOT NULL AND flag_reason != 'why_too_short'");
+    where.push(`flag_reason IS NOT NULL AND flag_reason != '${FLAG_REASON_WHY_TOO_SHORT}'`);
   }
 
   const whereClause = where.length > 0 ? `WHERE ${where.join(" AND ")}` : "";
-  const limit = filters.limit ?? 100;
-  const offset = filters.offset ?? 0;
+  const limit = Math.max(0, Math.min(filters.limit ?? DEFAULT_LIST_LIMIT, 1000));
+  const offset = Math.max(0, filters.offset ?? 0);
 
   const stmt = db.query<AuditLogRow, SQLQueryBindings[]>(
     `SELECT ${SELECT_COLS} FROM audit_log
@@ -121,10 +132,6 @@ export function listLogs(
   return stmt.all(...params, limit, offset);
 }
 
-/**
- * 既知の問題: Bun の bun:sqlite は INTEGER NULL を 0 として返すケースがあるため、
- * raw_response の存在チェックは Uint8Array.byteLength で行うこと。
- */
 export function clearRawResponseOlderThan(
   db: Database,
   cutoff: string,
